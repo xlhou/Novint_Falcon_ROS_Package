@@ -1,0 +1,19 @@
+<package>
+  <description brief="virtual_slave">
+
+     virtual_slave
+
+  </description>
+  <author>pilot</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/virtual_slave</url>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+
+</package>
+
+

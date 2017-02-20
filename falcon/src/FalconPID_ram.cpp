@@ -200,7 +200,7 @@ void FalconPID::run(double *cpos, double* outforce, double* env_force, double* f
 	
 	ppos[0] = pos[0];
 	ppos[1] = pos[1];
-	ppos[2] = (pos[2]-0.1050);
+	ppos[2] = (pos[2]-0.12);
 
 	static boost::array<double, 3> force = {0,0,0};
 	static double vel_filter[3] = {0, 0, 0};
@@ -220,7 +220,7 @@ void FalconPID::run(double *cpos, double* outforce, double* env_force, double* f
 
 	error[0] = (vel_filter[0]/10-ppos[0]);//x in right direction
 	error[1] = (vel_filter[1]/10-ppos[1]);//y in front
-	error[2] =  (cpos[2]/10-ppos[2]);
+	error[2] = (vel_filter[2]/10-ppos[2]);
 
 		
 	p1u[0] = force[0];
@@ -242,12 +242,12 @@ void FalconPID::run(double *cpos, double* outforce, double* env_force, double* f
 
 	force[0] = scale*1.5*KP*(error[0]+1.0* KI*x_k[0]+KD*zk[0])*20;//pid force applied to falcon to servo the position
 	force[1] = scale*1.5*KP*(error[1]+1.0 *KI*x_k[1]+1.0*KD*zk[1])*20+0.85;
-	force[2] = scale*1.5*KP*(error[2]+1.0*KI*x_k[2]+KD*zk[2])*20;
+	force[2] = scale*1.5*KP*(error[2]+1.0*KI*x_k[2]+KD*zk[2])*20*1.5;
 
 // Computing input from user (the integral term)
 	outforce[0] = - scale*1.5*KP*KI*x_k[0]*20 ; // left; a negative sign is needed to get the actural force 
 	outforce[1] = - scale*1.5*KP*KI*x_k[1]*20 ; // up
-	outforce[2] = - scale*1.5*KP*KI*x_k[2]*20; //out
+	outforce[2] = - scale*1.5*KP*KI*x_k[2]*20*1.5; //out
 
 	dev.setForce(force);
 	pos = dev.getPosition();

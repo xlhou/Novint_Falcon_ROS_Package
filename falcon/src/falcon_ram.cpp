@@ -52,16 +52,18 @@
 
 #define VEL2FALCON_SCALE 0.4//0.3		//base on 1m/s max speed
 #define MAX_DISP 0.4			//0.053
+#define PI 3.1415926			//0.053
 
 using namespace std;
 using namespace libnifalcon;
 
-double pos[3]={0,0,0},ppos[3]={0,0,0};
+double pos[3]={0,0,0},ppos[4]={0,0,0,0};
 double pos_buffer[3]={0,0,0};
 double rotation=0;
 double envforce[3]={0,0,0};
 
 double out_force[4]={0,0,0,0};
+double vel_ref[4] = {0};
 
 std_msgs::Float64MultiArray force_msg;
 
@@ -83,7 +85,7 @@ int main(int argc, char **argv)
 	fpid.init();		// initiating device
 
 // %Tag(INIT)%
-	ros::init(argc, argv, "falcon");
+	ros::init(argc, argv, "falcon_ram");
 // %EndTag(INIT)%
 
 // %Tag(NODEHANDLE)%
@@ -154,8 +156,6 @@ int main(int argc, char **argv)
 			}
 		};
 		
-		pos[2] = pos_buffer[2];
-		
 		fpid.run(pos, out_force, buf_eforce, ppos); // call falcon pid controller, servo the velocity position, and measure the force input from user
 
 		if (ppos[3]<0){
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 				ppos[3] -= 2*PI; 
 			}
 		}
-		cout<<"px: "<<(0.125-ppos[2])*20<<",py: "<<ppos[0]*20<<",pz: "<<ppos[1]*12<<"yaw: "<<ppos[3]<<endl;
+		cout<<"px: "<<(0.125-ppos[2])*20<<",py: "<<ppos[0]*20<<",pz: "<<ppos[1]*12<<", yaw: "<<ppos[3]<<endl;
 
 /*
 		force_msg.data.push_back((0.125-ppos[2])*40);// x in body fixed frame
@@ -176,14 +176,44 @@ int main(int argc, char **argv)
 */
 
 		time = ros::Time::now().toSec();
+	
+		vel_ref[0] = -out_force[2]/4.0*3.0;
+		if(vel_ref[0] > 2){
+			vel_ref[0]  = 2;
+		}
+		if(vel_ref[0] < -2){
+			vel_ref[0]  = -2;
+		}
 
-		force_msg.data.push_back(-out_force[2]/4.0*2.0);//x in body fixed frame,maximum force 4.0N, maximum velocity 1.0m/s
-		force_msg.data.push_back(out_force[0]/4.0*2.0);// y in body fixed frame
+		vel_ref[1] =  out_force[0]/3.0*3.0;
+		if(vel_ref[1] > 2){
+			vel_ref[1]  = 2;
+		}
+		if(vel_ref[1] < -2){
+			vel_ref[1]  = -2;
+		}
+
+		vel_ref[2] =  out_force[1]/4.0*3.0;
+		if(vel_ref[2] > 2){
+			vel_ref[2]  = 2;
+		}
+		if(vel_ref[2] < -2){
+			vel_ref[2]  = -2;		
+		}
+		
+		if(ppos[3] > PI)
+			vel_ref[3] = ppos[3] - PI * 2;
+		else if(vel_ref[3] < -PI)
+			vel_ref[3] = ppos[3] + PI * 2;
+		else
+			vel_ref[3] = ppos[3];
+
+		force_msg.data.push_back(vel_ref[0]);//x in body fixed frame,maximum force 4.0N, maximum velocity 1.0m/s
+		force_msg.data.push_back(vel_ref[1]);// y in body fixed frame
 		force_msg.data.push_back(0);// 0
-		force_msg.data.push_back(ppos[3]);// yaw in body fixed frame
-		force_msg.data.push_back(out_force[1]/4.0*2.0);// z in body fixed frame
+		force_msg.data.push_back(vel_ref[3]);// yaw in body fixed frame
+		force_msg.data.push_back(vel_ref[2]);// z in body fixed frame
 		force_msg.data.push_back(time);
-
 
 // %Tag(PUBLISH)%
 		falcon_pub.publish(force_msg);
