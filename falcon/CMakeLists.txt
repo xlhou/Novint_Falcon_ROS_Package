@@ -22,10 +22,10 @@ rosbuild_genmsg()
 rosbuild_gensrv()
 
 #common commands for building c++ executables and libraries
-rosbuild_add_library(${PROJECT_NAME} src/FalconPID_ram.cpp)
-rosbuild_add_library(${PROJECT_NAME} src/lowPass.cpp)
-target_link_libraries(${PROJECT_NAME} nifalcon)
-target_link_libraries(${PROJECT_NAME} nifalcon_cli_base)
-target_link_libraries(${PROJECT_NAME} nifalcon_device_boost_thread)
+rosbuild_add_library(${PROJECT_NAME}_ram src/FalconPID_ram.cpp)
+rosbuild_add_library(${PROJECT_NAME}_ram src/lowPass.cpp)
+target_link_libraries(${PROJECT_NAME}_ram nifalcon)
+target_link_libraries(${PROJECT_NAME}_ram nifalcon_cli_base)
+target_link_libraries(${PROJECT_NAME}_ram nifalcon_device_boost_thread)
 
 rosbuild_add_executable(falcon_ram src/falcon_ram.cpp)
